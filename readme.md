@@ -1,4 +1,71 @@
-# Nấu canh không muối dở như hash không salt
+# Brute password tool - Nấu canh không muối nó dở như hash không salt
+
+## Kích thước Image
+
+```bash
+docker inspect tranphuquy19/naucanh:latest --format='{{.Size}}'
+# 36472 # bytes
+```
+
+Build với libs chuẩn, nếu custom libs thì có thể nhỏ hơn nữa.
+
+## Sơ lược Dockerfile
+```dockerfile
+# Multi-stage build - giữ build libs ở một stage riêng
+FROM ubuntu:22.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    gcc libc6-dev \
+    # musl luôn xuất binary luôn luôn nhỏ hơn gcc
+    musl-tools \
+    autoconf automake libtool pkg-config make \
+    # for strip - remove debug symbols
+    binutils \
+    # upx - compress binary
+    upx
+
+COPY . /src
+WORKDIR /src
+
+# Build the project
+RUN make clean && \
+    make
+
+# Strip and compress the binary
+RUN strip --strip-all naucanh && \
+    upx --best --lzma naucanh
+
+FROM scratch
+COPY --from=builder /src/naucanh /naucanh
+ENTRYPOINT ["/naucanh"]
+```
+
+## Screenshots
+
+### MD5
+![Screenshot](imgs/image+3.png)
+
+### SHA-256
+![Screenshot](imgs/image+2.png)
+
+### SHA-512
+![Screenshot](imgs/image.png)
+
+### No user OR no password list found
+
+User `chris2` có nhưng không có password list. User `nochris` không có.
+
+![Screenshot](imgs/image+1.png)
+
+### No password list found
+![Screenshot](imgs/image+4.png)
+
+# Script test.sh
+
 
 ```
 root@underground-ctn:/opt/FINAL# bash test.sh 

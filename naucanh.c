@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     FILE *fp = fopen(argv[2], "r");
     if (!fp) {
         fprintf(stderr, "Error: Cannot open password file %s\n", argv[2]);
-        return 1;
+        return 2;
     }
     
     char password[256];
